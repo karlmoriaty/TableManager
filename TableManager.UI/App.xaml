@@ -1,0 +1,12 @@
+<Application x:Class="TableManager.UI.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:TableManager.UI"
+             xmlns:converters="clr-namespace:TableManager.UI.Converters"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <converters:NotNullToBoolConverter x:Key="NotNullConverter"/>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:FirstErrorConverter x:Key="FirstErrorConverter"/>
+    </Application.Resources>
+</Application>

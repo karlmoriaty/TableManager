@@ -1,0 +1,187 @@
+<UserControl x:Class="TableManager.UI.Views.CustomersView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vm="clr-namespace:TableManager.UI.ViewModels"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="1000">
+    <UserControl.DataContext>
+        <vm:CustomersViewModel />
+    </UserControl.DataContext>
+    <UserControl.Resources>
+        <Style TargetType="Button" x:Key="ActionButton">
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="MinWidth" Value="80"/>
+        </Style>
+        <Style TargetType="TextBlock" x:Key="ErrorText">
+            <Setter Property="Foreground" Value="Red"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="客户管理" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
+
+        <StackPanel Grid.Row="1" Margin="0,0,0,15">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                <TextBox Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}" 
+                         Width="300" Padding="5" Margin="0,0,10,0"/>
+                <Button Command="{Binding SearchCommand}" Content="搜索" Style="{StaticResource ActionButton}"/>
+                <Button Command="{Binding LoadCustomersCommand}" Content="刷新" Style="{StaticResource ActionButton}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Button Command="{Binding AddCustomerCommand}" Content="添加客户" Style="{StaticResource ActionButton}" Background="#3498DB" Foreground="White"/>
+                <Button Command="{Binding EditCustomerCommand}" Content="编辑客户" Style="{StaticResource ActionButton}" IsEnabled="{Binding SelectedCustomer, Converter={StaticResource NotNullConverter}}"/>
+                <Button Command="{Binding DeleteCustomerCommand}" Content="删除客户" Style="{StaticResource ActionButton}" IsEnabled="{Binding SelectedCustomer, Converter={StaticResource NotNullConverter}}" Background="#E74C3C" Foreground="White"/>
+            </StackPanel>
+        </StackPanel>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="400"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="10">
+                <DataGrid ItemsSource="{Binding Customers}" SelectedItem="{Binding SelectedCustomer}" 
+                          AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
+                          SelectionChanged="DataGrid_SelectionChanged">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
+                        <DataGridTextColumn Header="客户名称" Binding="{Binding Name}" Width="*"/>
+                        <DataGridTextColumn Header="电话" Binding="{Binding Phone}" Width="120"/>
+                        <DataGridTextColumn Header="邮箱" Binding="{Binding Email}" Width="150"/>
+                        <DataGridTextColumn Header="公司" Binding="{Binding Company}" Width="150"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <Border Grid.Column="2" Background="White" CornerRadius="8" Padding="15">
+                <StackPanel>
+                    <TextBlock Text="联系人" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button Command="{Binding AddContactCommand}" Content="添加联系人" Style="{StaticResource ActionButton}" Background="#27AE60" Foreground="White"/>
+                        <Button Command="{Binding EditContactCommand}" Content="编辑联系人" Style="{StaticResource ActionButton}" IsEnabled="{Binding CurrentContacts.Count, Converter={StaticResource NotNullConverter}}"/>
+                        <Button Command="{Binding DeleteContactCommand}" Content="删除联系人" Style="{StaticResource ActionButton}" IsEnabled="{Binding CurrentContacts.Count, Converter={StaticResource NotNullConverter}}" Background="#E74C3C" Foreground="White"/>
+                    </StackPanel>
+                    <DataGrid ItemsSource="{Binding CurrentContacts}" 
+                              AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="姓名" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="电话" Binding="{Binding Phone}" Width="100"/>
+                            <DataGridCheckBoxColumn Header="主要" Binding="{Binding IsPrimary}" Width="50"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Border x:Name="EditDialog" Grid.Row="0" Grid.RowSpan="3" Background="#80000000" Visibility="{Binding IsEditDialogOpen, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Border Width="500" Height="Auto" Background="White" CornerRadius="10" Padding="25" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <TextBlock Text="{Binding EditDialogTitle}" FontSize="20" FontWeight="Bold" Margin="0,0,0,20"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="客户名称:" VerticalAlignment="Center" Margin="0,10"/>
+                        <StackPanel Grid.Row="0" Grid.Column="1">
+                            <TextBox Text="{Binding EditingCustomer.Name, UpdateSourceTrigger=PropertyChanged}" Padding="5" Margin="0,10,0,0"/>
+                            <TextBlock Text="{Binding Errors[EditingCustomer.Name], Converter={StaticResource FirstErrorConverter}}" Style="{StaticResource ErrorText}"/>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="电话:" VerticalAlignment="Center" Margin="0,10"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding EditingCustomer.Phone}" Padding="5" Margin="0,10"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="邮箱:" VerticalAlignment="Center" Margin="0,10"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding EditingCustomer.Email}" Padding="5" Margin="0,10"/>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="公司:" VerticalAlignment="Center" Margin="0,10"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding EditingCustomer.Company}" Padding="5" Margin="0,10"/>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="地址:" VerticalAlignment="Center" Margin="0,10"/>
+                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding EditingCustomer.Address}" Padding="5" Margin="0,10"/>
+
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="备注:" VerticalAlignment="Top" Margin="0,10"/>
+                        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding EditingCustomer.Notes}" Padding="5" Margin="0,10" Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                        <Button Command="{Binding CancelEditCommand}" Content="取消" Style="{StaticResource ActionButton}"/>
+                        <Button Command="{Binding SaveCustomerCommand}" Content="保存" Style="{StaticResource ActionButton}" Background="#27AE60" Foreground="White"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <Border x:Name="ContactEditDialog" Grid.Row="0" Grid.RowSpan="3" Background="#80000000" Visibility="{Binding IsContactEditDialogOpen, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Border Width="450" Height="Auto" Background="White" CornerRadius="10" Padding="25" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <TextBlock Text="{Binding ContactEditDialogTitle}" FontSize="20" FontWeight="Bold" Margin="0,0,0,20"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="姓名:" VerticalAlignment="Center" Margin="0,10"/>
+                        <StackPanel Grid.Row="0" Grid.Column="1">
+                            <TextBox Text="{Binding EditingContact.Name, UpdateSourceTrigger=PropertyChanged}" Padding="5" Margin="0,10,0,0"/>
+                            <TextBlock Text="{Binding Errors[EditingContact.Name], Converter={StaticResource FirstErrorConverter}}" Style="{StaticResource ErrorText}"/>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="电话:" VerticalAlignment="Center" Margin="0,10"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding EditingContact.Phone}" Padding="5" Margin="0,10"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="邮箱:" VerticalAlignment="Center" Margin="0,10"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding EditingContact.Email}" Padding="5" Margin="0,10"/>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="职位:" VerticalAlignment="Center" Margin="0,10"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding EditingContact.Position}" Padding="5" Margin="0,10"/>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="主要联系人:" VerticalAlignment="Center" Margin="0,10"/>
+                        <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding EditingContact.IsPrimary}" VerticalAlignment="Center" Margin="0,10"/>
+
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="备注:" VerticalAlignment="Top" Margin="0,10"/>
+                        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding EditingContact.Notes}" Padding="5" Margin="0,10" Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                        <Button Command="{Binding CancelContactEditCommand}" Content="取消" Style="{StaticResource ActionButton}"/>
+                        <Button Command="{Binding SaveContactCommand}" Content="保存" Style="{StaticResource ActionButton}" Background="#27AE60" Foreground="White"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>

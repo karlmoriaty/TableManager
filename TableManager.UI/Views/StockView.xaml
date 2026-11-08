@@ -1,0 +1,132 @@
+<UserControl x:Class="TableManager.UI.Views.StockView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vm="clr-namespace:TableManager.UI.ViewModels"
+             xmlns:c="clr-namespace:TableManager.UI.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.DataContext>
+        <vm:StockViewModel />
+    </UserControl.DataContext>
+    <UserControl.Resources>
+        <c:RadioButtonConverter x:Key="RadioButtonConverter"/>
+        <c:NotBoolConverter x:Key="NotBoolConverter"/>
+        <c:FirstErrorConverter x:Key="FirstErrorConverter"/>
+        <Style TargetType="Button" x:Key="ActionButton">
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="MinWidth" Value="80"/>
+        </Style>
+        <Style TargetType="TextBlock" x:Key="ErrorText">
+            <Setter Property="Foreground" Value="Red"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+        </Style>
+        <Style TargetType="RadioButton" x:Key="OperationRadio">
+            <Setter Property="Margin" Value="0,0,20,0"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="库存管理" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
+
+        <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,15">
+            <StackPanel>
+                <TextBlock Text="出入库操作" FontSize="18" FontWeight="Bold" Margin="0,0,0,15"/>
+                
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="120"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="操作类型:" VerticalAlignment="Center" Margin="0,10"/>
+                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,10">
+                        <RadioButton Content="入库" IsChecked="{Binding OperationType, Converter={StaticResource RadioButtonConverter}, ConverterParameter=In}" GroupName="Operation" Style="{StaticResource OperationRadio}"/>
+                        <RadioButton Content="出库" IsChecked="{Binding OperationType, Converter={StaticResource RadioButtonConverter}, ConverterParameter=Out}" GroupName="Operation" Style="{StaticResource OperationRadio}"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="选择商品:" VerticalAlignment="Center" Margin="0,10"/>
+                    <StackPanel Grid.Row="1" Grid.Column="1">
+                        <ComboBox ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}" 
+                                  DisplayMemberPath="Name" Padding="5" Margin="0,10,0,0">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                                        <TextBlock Text=" (库存: " Foreground="#7F8C8D"/>
+                                        <TextBlock Text="{Binding StockQuantity}" Foreground="#3498DB" FontWeight="Bold"/>
+                                        <TextBlock Text=")" Foreground="#7F8C8D"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock Text="{Binding Errors[SelectedProduct], Converter={StaticResource FirstErrorConverter}}" Style="{StaticResource ErrorText}"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="数量:" VerticalAlignment="Center" Margin="0,10"/>
+                    <StackPanel Grid.Row="2" Grid.Column="1">
+                        <TextBox Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" Padding="5" Margin="0,10,0,0"/>
+                        <TextBlock Text="{Binding Errors[Quantity], Converter={StaticResource FirstErrorConverter}}" Style="{StaticResource ErrorText}"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="备注:" VerticalAlignment="Top" Margin="0,10"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Notes}" Padding="5" Margin="0,10" Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                    <Button Command="{Binding LoadDataCommand}" Content="刷新" Style="{StaticResource ActionButton}"/>
+                    <Button Command="{Binding ExecuteOperationCommand}" Content="执行" IsEnabled="{Binding IsProcessing, Converter={StaticResource NotBoolConverter}}" Style="{StaticResource ActionButton}" Background="#27AE60" Foreground="White"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <TextBlock Grid.Row="2" Text="库存记录" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
+
+        <Border Grid.Row="3" Background="White" CornerRadius="8" Padding="10">
+            <DataGrid ItemsSource="{Binding StockRecords}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
+                    <DataGridTextColumn Header="商品ID" Binding="{Binding ProductId}" Width="80"/>
+                    <DataGridTextColumn Header="类型" Binding="{Binding Type}" Width="80">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Type}" Value="In">
+                                        <Setter Property="Foreground" Value="#27AE60"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Type}" Value="Out">
+                                        <Setter Property="Foreground" Value="#E74C3C"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="数量" Binding="{Binding Quantity}" Width="80"/>
+                    <DataGridTextColumn Header="变更前" Binding="{Binding BeforeStock}" Width="80"/>
+                    <DataGridTextColumn Header="变更后" Binding="{Binding AfterStock}" Width="80"/>
+                    <DataGridTextColumn Header="备注" Binding="{Binding Notes}" Width="*"/>
+                    <DataGridTextColumn Header="时间" Binding="{Binding CreatedAt, StringFormat={}{0:yyyy-MM-dd HH:mm:ss}}" Width="160"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+    </Grid>
+</UserControl>
