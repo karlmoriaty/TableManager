@@ -1,41 +1,50 @@
-# TableManager - 企业级 ERP/CRM 桌面管理系统
+# TableManager
 
-面向中小企业的高效内部管理桌面应用，集库存管理、客户关系管理、订单管理于一体。
+A desktop ERP/CRM for small businesses: products and stock, customers and contacts,
+sales orders, and reports — all in one local SQLite database.
 
-## 功能特性
+## Features
 
-- **仪表盘**：数据概览与统计图表
-- **商品管理**：商品 CRUD、库存查询、库存盘点
-- **客户管理**：客户信息、跟进记录、联系人管理
-- **订单管理**：销售订单创建、状态管理、查询统计
-- **库存管理**：入库、出库、库存预警
-- **数据导出**：Excel 报表导出
+- **Dashboard** — product, customer and order counts (charts are still a placeholder).
+- **Products** — CRUD, stock lookup, stock adjustments.
+- **Customers** — customer records, contacts, follow-up notes.
+- **Orders** — create sales orders, track status, query and summarize.
+- **Stock** — inbound and outbound movements, low-stock warnings.
+- **Export and backup** — Excel (`.xlsx`) exports for products, customers, orders
+  and stock records; compressed database backups and restore.
 
-## 技术栈
-
-- **C# 12** + **WPF** + **.NET 8.0**
-- **SQLite**（Microsoft.Data.Sqlite）嵌入式数据库
-- **CommunityToolkit.Mvvm**（MVVM 框架）
-- **EPPlus**（Excel 导出）
-
-## 项目结构
+## Architecture
 
 ```
-TableManager/
-├── TableManager.sln
-├── TableManager.UI/          # WPF 界面层（View + ViewModel + Converter）
-├── TableManager.BLL/         # 业务逻辑层（Services）
-├── TableManager.DAL/         # 数据访问层（Database + Models + Repositories）
-└── README.md
+TableManager.UI    WPF views, ViewModels, converters (CommunityToolkit.Mvvm)
+TableManager.BLL   services: products, customers, orders, stock, export, database
+TableManager.DAL   SQLite context, models, repositories
 ```
 
-## 快速开始
+The UI talks to services, services talk to repositories; there is no ORM — the DAL
+runs SQL against Microsoft.Data.Sqlite directly.
+
+## Stack
+
+C# 12, WPF on .NET 8, Microsoft.Data.Sqlite, CommunityToolkit.Mvvm, EPPlus for Excel
+export.
+
+## Build and run
 
 ```bash
-# 克隆仓库后，用 Visual Studio 打开 TableManager.sln
-# 或命令行：
 dotnet build TableManager.sln
 dotnet run --project TableManager.UI/TableManager.UI.csproj
 ```
 
-首次运行会自动创建 SQLite 数据库文件（位于程序运行目录下的 `tablemanager.db`）。
+On first start the database is created next to the executable as `tablemanager.db`.
+Backups are written to a `Backups` folder next to the executable.
+
+## Notes
+
+- Single-user, single-machine: no server, no sync, no multi-user locking.
+- The UI is in Chinese and ships as Chinese Excel headers.
+- No unit tests yet.
+
+## License
+
+MIT
